@@ -57,6 +57,8 @@ public:
   Analysis();
   ~Analysis();
   Analysis(std::string logicalVolumeName);
+  /*A Special construtor to allow creation of MuonTrack directly from Vector of DataObject*/
+  Analysis(std::vector<Data*> vecOfData);
   void InitializeRootObjects(std::string name);
   void InitializeRootObjects(std::string name, unsigned short detId, unsigned short layerId);
   std::string GetPhyVolumeName() const;

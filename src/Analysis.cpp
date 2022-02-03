@@ -19,7 +19,7 @@ Analysis::Analysis() {
   ftree->Branch("POCA", "Vector3D", &fPOCA);
   ftree->Branch("MeanHitPt", "Vector3D", &fMeanHitPt);
   ftree->Branch("AngularDeviation", &fAngularDeviation, "fAngularDeviation/D");
-  //ftree->Branch("VecOfMeanHitPt", "std::vector<Vector3D>", &fVecOfMeanHitPt);
+  // ftree->Branch("VecOfMeanHitPt", "std::vector<Vector3D>", &fVecOfMeanHitPt);
   fIncomingMuonTrack = new MuonTrack;
   fOutgoingMuonTrack = new MuonTrack;
   fAngDevHist = new TH1F("AngularDeviation", "AngularDeviation", 200, -0.2, 0.2);
@@ -35,6 +35,13 @@ Analysis::Analysis(std::string phyVolumeName) {
   ftree->Branch("VectorOfDataObject", "std::vector<Data*>", &fVecOfData);
   fIncomingMuonTrack = new MuonTrack;
   fOutgoingMuonTrack = new MuonTrack;*/
+}
+
+Analysis::Analysis(std::vector<Data *> vecOfData) {
+  for (unsigned int i = 0; i < vecOfData.size(); i++) {
+    fVecOfData.push_back(vecOfData[i]);
+  }
+  GetAngularDeviation();
 }
 
 std::string Analysis::GetPhyVolumeName() const { return fPhyVolumeName; }
@@ -61,7 +68,7 @@ void PreStepPositionInSteps(std::string name, G4ThreeVector pt);
 void Analysis::InitializeTotalEnergyDeposit() {
 
   fVecOfData.clear();
-  //fVecOfMeanHitPt.clear();
+  // fVecOfMeanHitPt.clear();
   for (unsigned int i = 0; i < fVecOfRootObjects.size(); i++) {
     fVecOfRootObjects[i]->InitializeTotalEnergyDeposit();
   }
@@ -93,9 +100,9 @@ void Analysis::FillEnergyDep() {
     std::size_t pos = detName.find("_");
     std::string preString = detName.substr(0, pos);
     if (preString == "Scatterer") {
-	//std::cout << "Going to fill vecOf Mean Hit Pt .... : " << __FILE__ << " : "<< __LINE__ << std::endl;
-      //fVecOfMeanHitPt.push_back(temp->GetMeanHitPoint());
-	fMeanHitPt = temp->GetMeanHitPoint();
+      // std::cout << "Going to fill vecOf Mean Hit Pt .... : " << __FILE__ << " : "<< __LINE__ << std::endl;
+      // fVecOfMeanHitPt.push_back(temp->GetMeanHitPoint());
+      fMeanHitPt = temp->GetMeanHitPoint();
     }
   }
   ftree->Fill();
@@ -110,10 +117,10 @@ void Analysis::Write() {
 }
 Data *Analysis::HitInLayer(unsigned short layerId, bool &yes) {
   yes = false;
-  // std::cout << MAGENTA << "Size of Vector Data : " << fVecOfData.size() << RESET << std::endl;
+  std::cout << MAGENTA << "Size of Vector Data : " << fVecOfData.size() << RESET << std::endl;
   for (unsigned int i = 0; i < fVecOfData.size(); i++) {
     std::string detName = fVecOfData[i]->GetDetName();
-    // std::cout << BLUE << "Detector Name : " << detName << RESET << std::endl;
+    std::cout << BLUE << "Detector Name : " << detName << RESET << std::endl;
     std::size_t pos = detName.find("_");
     std::string preString = detName.substr(0, pos);
     if (fVecOfData[i]->GetLayerId() == layerId && preString == "PhysicalTrackingDetector") {

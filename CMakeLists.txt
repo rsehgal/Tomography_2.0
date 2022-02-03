@@ -63,6 +63,10 @@ target_link_libraries(main ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${Tracki
 add_executable(Test_POCA_Vis test/Test_POCA_Vis.cpp)
 target_link_libraries(Test_POCA_Vis ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES} Geom Eve)
 
+add_executable(GenerateDataForML test/GenerateDataForML.cpp ${sources})
+target_link_libraries(GenerateDataForML ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES} Geom Eve)
+
+
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we
 # build B1. This is so that we can run the executable directly because it
