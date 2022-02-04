@@ -3,18 +3,23 @@
 **	2022-02-03
 **	username : rsehgal
 */
+#include "Analysis.h"
 #include "Data.h"
 #include "EveVisualizer.h"
+#include "MuonTrack.h"
 #include "TApplication.h"
 #include "TFile.h"
 #include "TTree.h"
+#include "Track.h"
 #include "VisualizationHelper.h"
 #include "base/Vector3D.h"
+#include "colors.h"
+#include <fstream>
 #include <iostream>
-#include "Analysis.h"
 using Tomography::VisualizationHelper;
 using Vec_t = Tracking::Vector3D<double>;
 int main(int argc, char *argv[]) {
+  std::ofstream outfile("mldata.txt");
   TApplication *fApp = new TApplication("Test", NULL, NULL);
   /*Tomography::VisualizationHelper *v = new Tomography::VisualizationHelper; //::instance();
   // Vec_t pt(3.,4.,5.,10.);
@@ -37,6 +42,7 @@ int main(int argc, char *argv[]) {
 
   unsigned int counter = 0;
 
+  Analysis an;
   for (unsigned int j = 0; j < tr->GetEntries(); j++) {
     /*if (angDev > 0.00006) {
       counter++;
@@ -46,30 +52,35 @@ int main(int argc, char *argv[]) {
     }*/
 
     tr->GetEntry(j);
-    //Analysis an(*VectorOfDataObject);
-    //an.Print();
+    // Analysis an(*VectorOfDataObject);
+    // an.Print();
     // std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" << std::endl;
-    std::vector<Data*> vecOfData;
-    for (unsigned int i = 0; i < VectorOfDataObject->size(); i++) {
+    std::vector<Data *> vecOfData;
 
-	Data *temp =  (*VectorOfDataObject)[i];
-	vecOfData.push_back(temp);
-      /*std::cout << "--------------------------------------" << std::endl;
-      std::cout << "POCA : ";
-      poca->Print();
-      (*VectorOfDataObject)[i]->Print();*/
-      // tempPt.Set(poca->GetX()/10.,poca->GetY()/10.,poca->GetZ()/10.);
-      /*if (angDev > 0.00006) {
-        counter++;
-        tempPt.Set(poca->GetX(), poca->GetY(), poca->GetZ());
-        v->Register(tempPt);
-      }*/
+    /*for (unsigned int i = 0; i < VectorOfDataObject->size(); i++) {
+
+      Data *temp = (*VectorOfDataObject)[i];
+      vecOfData.push_back(temp);
+    }*/
+
+    // an.SetVecOfData(vecOfData);
+    if (angDev > 0.00006) {
+      an.SetVecOfData(*VectorOfDataObject);
+      std::cout << RED << "--------------------------------------" << RESET << std::endl;
+      Tracking::Vector3D<double> incomingVec3D = an.GetIncomingTrack()->GetProcessorTrack()->GetDirectionRatio();
+      Tracking::Vector3D<double> outgoingVec3D = an.GetOutgoingTrack()->GetProcessorTrack()->GetDirectionRatio();
+      incomingVec3D.Print();
+      outgoingVec3D.Print();
+      outfile << incomingVec3D.x() << "," << incomingVec3D.y() << "," << incomingVec3D.z() << "," << outgoingVec3D.x()
+              << "," << outgoingVec3D.y() << "," << outgoingVec3D.z() << "," << meanHitPt->GetX() << ","
+              << meanHitPt->GetY() << "," << meanHitPt->GetZ() << std::endl;
     }
-
-    Analysis an(vecOfData);
-    an.Print();
+    // std::cout << "--------------------------------------" << std::endl;
+    // an.GetOutgoingTrack()->Print();
+    // an.Print();
   }
 
   std::cout << "No. of points plotted : " << counter << std::endl;
+  outfile.close();
   return 0;
 }

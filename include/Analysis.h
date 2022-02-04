@@ -59,6 +59,7 @@ public:
   Analysis(std::string logicalVolumeName);
   /*A Special construtor to allow creation of MuonTrack directly from Vector of DataObject*/
   Analysis(std::vector<Data*> vecOfData);
+  void SetVecOfData(std::vector<Data *> vecOfData);
   void InitializeRootObjects(std::string name);
   void InitializeRootObjects(std::string name, unsigned short detId, unsigned short layerId);
   std::string GetPhyVolumeName() const;
@@ -73,6 +74,8 @@ public:
   std::vector<Data*> HitInAllLayers(bool &yes);
   std::vector<Data*> GetIncomingMuonTrack();
   std::vector<Data*> GetOutgoingMuonTrack();
+  MuonTrack* GetIncomingTrack()const;
+  MuonTrack* GetOutgoingTrack()const;
   double GetAngularDeviation();
   std::vector<Data*> GetVectorOfData();
   void CalculatePOCA();

@@ -37,11 +37,23 @@ Analysis::Analysis(std::string phyVolumeName) {
   fOutgoingMuonTrack = new MuonTrack;*/
 }
 
+void Analysis::SetVecOfData(std::vector<Data *> vecOfData) {
+  fVecOfData.clear();
+  for (unsigned int i = 0; i < vecOfData.size(); i++) {
+    fVecOfData.push_back(vecOfData[i]);
+  }
+  fIncomingMuonTrack->Reset(GetIncomingMuonTrack());
+  fOutgoingMuonTrack->Reset(GetOutgoingMuonTrack());
+}
+
 Analysis::Analysis(std::vector<Data *> vecOfData) {
   for (unsigned int i = 0; i < vecOfData.size(); i++) {
     fVecOfData.push_back(vecOfData[i]);
   }
-  GetAngularDeviation();
+  fIncomingMuonTrack = new MuonTrack;
+  fOutgoingMuonTrack = new MuonTrack;
+  // fAngDevHist = new TH1F("AngularDeviation", "AngularDeviation", 200, -0.2, 0.2);
+  // GetAngularDeviation();
 }
 
 std::string Analysis::GetPhyVolumeName() const { return fPhyVolumeName; }
@@ -117,10 +129,10 @@ void Analysis::Write() {
 }
 Data *Analysis::HitInLayer(unsigned short layerId, bool &yes) {
   yes = false;
-  std::cout << MAGENTA << "Size of Vector Data : " << fVecOfData.size() << RESET << std::endl;
+  // std::cout << MAGENTA << "Size of Vector Data : " << fVecOfData.size() << RESET << std::endl;
   for (unsigned int i = 0; i < fVecOfData.size(); i++) {
     std::string detName = fVecOfData[i]->GetDetName();
-    std::cout << BLUE << "Detector Name : " << detName << RESET << std::endl;
+    // std::cout << BLUE << "Detector Name : " << detName << RESET << std::endl;
     std::size_t pos = detName.find("_");
     std::string preString = detName.substr(0, pos);
     if (fVecOfData[i]->GetLayerId() == layerId && preString == "PhysicalTrackingDetector") {
@@ -152,6 +164,7 @@ std::vector<Data *> Analysis::GetIncomingMuonTrack() {
   bool hitInAllLayers = true;
   std::vector<Data *> completeTrack = HitInAllLayers(hitInAllLayers);
   std::vector<Data *> incomingTrack;
+  // std::cout << "Hit In All Layers : " << hitInAllLayers << std::endl;
   if (hitInAllLayers) {
     for (unsigned int i = 0; i < completeTrack.size() / 2; i++) {
       incomingTrack.push_back(completeTrack[i]);
@@ -171,6 +184,11 @@ std::vector<Data *> Analysis::GetOutgoingMuonTrack() {
   }
   return outgoingTrack;
 }
+
+MuonTrack *Analysis::GetIncomingTrack() const { return fIncomingMuonTrack; }
+
+MuonTrack *Analysis::GetOutgoingTrack() const { return fOutgoingMuonTrack; }
+
 double Analysis::GetAngularDeviation() {
   std::vector<Data *> incomingTrackData = GetIncomingMuonTrack();
   std::vector<Data *> outgoingTrackData = GetOutgoingMuonTrack();
@@ -200,6 +218,7 @@ double Analysis::GetAngularDeviation() {
     CalculatePOCA();
   }
   return fAngularDeviation;
+  return 0.;
 }
 
 void Analysis::CalculatePOCA() {
