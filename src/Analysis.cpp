@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "OutputFile.h"
 Analysis::Analysis() {
   ftree = new TTree("ftree", "A tree with objects of Data");
   ftree->Branch("VectorOfDataObject", "std::vector<Data*>", &fVecOfData);
@@ -102,11 +103,13 @@ void Analysis::FillEnergyDep() {
 }
 
 void Analysis::Write() {
+  lite_interface::OutputFile::instance()->cd();  
   for (unsigned int i = 0; i < fVecOfRootObjects.size(); i++) {
     fVecOfRootObjects[i]->Write();
   }
   ftree->Write();
   fAngDevHist->Write();
+  lite_interface::OutputFile::instance()->Close();
 }
 Data *Analysis::HitInLayer(unsigned short layerId, bool &yes) {
   yes = false;
