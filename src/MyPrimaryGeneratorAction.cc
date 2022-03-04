@@ -10,6 +10,7 @@
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 #include <TRandom.h>
+#include "MuonReader.h"
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 MyPrimaryGeneratorAction::MyPrimaryGeneratorAction()
@@ -27,7 +28,7 @@ MyPrimaryGeneratorAction::MyPrimaryGeneratorAction()
     = particleTable->FindParticle(particleName="mu-");
   fParticleGun->SetParticleDefinition(particle);
   fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0.,0.,-1.));
-  fParticleGun->SetParticleEnergy(6.*MeV);
+  //fParticleGun->SetParticleEnergy(6.*MeV);
   fRand = new TRandom;
 }
 
@@ -45,13 +46,17 @@ void MyPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
  
   //fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,10.));
   G4ThreeVector startPt = G4ThreeVector(fRand->Uniform(-50*cm,50*cm),fRand->Uniform(-50*cm,50*cm),100*cm);
-  G4ThreeVector endPt = G4ThreeVector(fRand->Uniform(-50*cm,50*cm),fRand->Uniform(-50*cm,50*cm),-100*cm);
-  G4ThreeVector dir = (endPt-startPt).unit();
-  
+ 
   fParticleGun->SetParticlePosition(startPt);
+  Muon *muon = new Muon(*lite_interface::MuonReader::instance("Muons-50L.root")->GetMuon());
+  G4ThreeVector dir(muon->angleX, muon->angleZ, muon->angleY);
   fParticleGun->SetParticleMomentumDirection(dir);
-  //fParticleGun->SetParticleEnergy(3.0*GeV);
-  //fParticleGun->SetParticleMomentum(3*GeV);
+  fParticleGun->SetParticleEnergy(muon->energy * MeV);
+
+  /*G4ThreeVector endPt = G4ThreeVector(fRand->Uniform(-50*cm,50*cm),fRand->Uniform(-50*cm,50*cm),-100*cm);
+  G4ThreeVector dir = (endPt-startPt).unit();
+  fParticleGun->SetParticleMomentumDirection(dir);*/
+
   fParticleGun->GeneratePrimaryVertex(anEvent);
 }
 
