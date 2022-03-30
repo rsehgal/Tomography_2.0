@@ -25,8 +25,8 @@ int main(int argc,char** argv)
 {
   // Detect interactive mode (if no arguments) and define UI session
   //
-   fp = new TFile("anal.root","RECREATE");
-  fp->cd();
+  // fp = new TFile("anal.root","RECREATE");
+  //fp->cd();
   G4UIExecutive* ui = 0;
   if ( argc == 1 ) {
     ui = new G4UIExecutive(argc, argv);
@@ -88,7 +88,7 @@ G4RunManager *runManager = new G4RunManager;
   
   delete visManager;
   delete runManager;
-  fp->Close();
+  //fp->Close();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....

@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 Analysis::Analysis() {
+  fp = new TFile("anal.root","RECREATE");
   ftree = new TTree("ftree", "A tree with objects of Data");
   ftree->Branch("VectorOfDataObject", "std::vector<Data*>", &fVecOfData);
   ftree->Branch("POCA", "Vector3D", &fPOCA);
@@ -23,6 +24,12 @@ Analysis::Analysis() {
   fIncomingMuonTrack = new MuonTrack;
   fOutgoingMuonTrack = new MuonTrack;
   fAngDevHist = new TH1F("AngularDeviation", "AngularDeviation", 200, -0.2, 0.2);
+
+
+  fPocaTree = new TTree("fPocaTree", "A tree to evaluate vectorized PoCA");
+  fPocaTree->Branch("Incoming_VectorOfDataObject", "std::vector<Data*>", &fIncomingVecOfData);
+  fPocaTree->Branch("Outgoing_VectorOfDataObject", "std::vector<Data*>", &fOutgoingVecOfData);
+
 }
 Analysis::~Analysis() {
   // fEnergyDepHist->Write();
@@ -102,11 +109,14 @@ void Analysis::FillEnergyDep() {
 }
 
 void Analysis::Write() {
+  fp->cd();
   for (unsigned int i = 0; i < fVecOfRootObjects.size(); i++) {
     fVecOfRootObjects[i]->Write();
   }
   ftree->Write();
+  fPocaTree->Write();
   fAngDevHist->Write();
+  fp->Close();
 }
 Data *Analysis::HitInLayer(unsigned short layerId, bool &yes) {
   yes = false;
@@ -165,8 +175,10 @@ std::vector<Data *> Analysis::GetOutgoingMuonTrack() {
   return outgoingTrack;
 }
 double Analysis::GetAngularDeviation() {
-  std::vector<Data *> incomingTrackData = GetIncomingMuonTrack();
-  std::vector<Data *> outgoingTrackData = GetOutgoingMuonTrack();
+  //std::vector<Data *> incomingTrackData = GetIncomingMuonTrack();
+  //std::vector<Data *> outgoingTrackData = GetOutgoingMuonTrack();
+  fIncomingVecOfData = GetIncomingMuonTrack();
+  fOutgoingVecOfData = GetOutgoingMuonTrack();
 
   //  if (fVecOfData.size() > 4) {
   if (0) {
@@ -179,17 +191,24 @@ double Analysis::GetAngularDeviation() {
       fVecOfData[i]->Print();
     }
   }
-  fIncomingMuonTrack->Reset(incomingTrackData);
+  //fIncomingMuonTrack->Reset(incomingTrackData);
+  fIncomingMuonTrack->Reset(fIncomingVecOfData);
+
+
   // std::cout << RED << "--------------------------------" << RESET << std::endl;
   // fIncomingMuonTrack->Print();
   // std::cout << BLUE << "--------------------------------" << RESET << std::endl;
   // fIncomingMuonTrack->GetProcessorTrack()->Print();
-  fOutgoingMuonTrack->Reset(outgoingTrackData);
+
+  //fOutgoingMuonTrack->Reset(outgoingTrackData);
+  fOutgoingMuonTrack->Reset(fOutgoingVecOfData);
+
   // fOutgoingMuonTrack->Print();
   // Print();
   fAngularDeviation = fIncomingMuonTrack->GetAngularDeviation(fOutgoingMuonTrack);
   if (std::fabs(fAngularDeviation) > 0.000001) {
     fAngDevHist->Fill(fAngularDeviation);
+    fPocaTree->Fill();
     CalculatePOCA();
   }
   return fAngularDeviation;

@@ -10,6 +10,9 @@
 #include <vector>
 #include <TVector3.h>
 #include "Track.h"
+#pragma once
+#include <TROOT.h>
+
 class MuonTrack {
   std::vector<Data *> fVecOfData;
 
@@ -24,6 +27,8 @@ public:
   Tomography::Track* GetProcessorTrack();
   double GetAngularDeviation(MuonTrack *muonTrack);
   void Print();
+  virtual ~MuonTrack();
+  //ClassDef(MuonTrack, 1)
 };
 
 #endif

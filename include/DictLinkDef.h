@@ -11,5 +11,7 @@
 #pragma link C++ class std::vector<Data*>+;
 #pragma link C++ class Vector3D+;
 #pragma link C++ class std::vector<Vector3D>+;
+#pragma link C++ class MuonTrack+;
+#pragma link C++ class std::vector<MuonTrack*>+;
 
 #endif

@@ -18,10 +18,6 @@ if(WITH_GEANT4_UIVIS)
 else()
   find_package(Geant4 REQUIRED)
 endif()
-
-add_subdirectory(DataDict)
-#add_subdirectory(TrackingLib)
-
 find_package(ROOT REQUIRED)
 message(STATUS "ROOT LIB : ${ROOT_LIBRARIES}")
 message(STATUS "ROOT INC : ${ROOT_INCLUDE_DIR}")
@@ -32,15 +28,23 @@ include_directories(${TrackingLib_INCLUDE_DIR}/Eve/inc)
 message(STATUS "TrackingLIB : ${TrackingLib_LIBRARIES}")
 
 include_directories(${ROOT_INCLUDE_DIR})
+#ROOT_GENERATE_DICTIONARY(G__MuonTrack include/MuonTrack.h  LINKDEF include/DictLinkDef.h)
+#add_library(MuonTrack SHARED src/MuonTrack.cpp  G__MuonTrack.cxx)
+#target_link_libraries(MuonTrack ${ROOT_LIBRARIES})
+#
+add_subdirectory(DataDict)
+#add_subdirectory(TrackingLib)
+
+
 include_directories(${CMAKE_SOURCE_DIR}/DataDict/inc)
 #include_directories(/home/rsehgal/Box_v2/DataDict/inc)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 link_directories(${CMAKE_SOURCE_DIR}/DataDict)
 
 
-#ROOT_GENERATE_DICTIONARY(G__Data include/Data.h  LINKDEF include/DictLinkDef.h)
-#add_library(Data SHARED src/Data.cpp  G__Data.cxx)
-#target_link_libraries(Data ${ROOT_LIBRARIES})
+#ROOT_GENERATE_DICTIONARY(G__MuonTrack include/MuonTrack.h  LINKDEF include/DictLinkDef.h)
+#add_library(MuonTrack SHARED src/MuonTrack.cpp  G__MuonTrack.cxx)
+#target_link_libraries(MuonTrack ${ROOT_LIBRARIES})
 #----------------------------------------------------------------------------
 # Setup Geant4 include directories and compile definitions
 # Setup include directory for this project
@@ -62,6 +66,14 @@ target_link_libraries(main ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${Tracki
 
 add_executable(Test_POCA_Vis test/Test_POCA_Vis.cpp)
 target_link_libraries(Test_POCA_Vis ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES} Geom Eve)
+
+add_executable(Test_Acceptance test/Test_Acceptance.cpp)
+target_link_libraries(Test_Acceptance ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES} Geom Eve)
+
+add_executable(Test_DataObject test/Test_DataObject.cpp)
+target_link_libraries(Test_DataObject ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES})
+add_executable(Test_IncomingOutgoing test/Test_IncomingOutgoing.cpp)
+target_link_libraries(Test_IncomingOutgoing ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES})
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

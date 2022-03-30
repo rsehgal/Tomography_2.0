@@ -104,7 +104,7 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
   } 
 
 
-
+#if(0)
   G4Box *box = new G4Box("leadBox",               // its name
                          50. * cm, 50. * cm, 5 * cm); // its size
 
@@ -140,6 +140,8 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
                                              1,               // copy number
                                              checkOverlaps);  // overlaps checking
   mySD->InitializeAnalyzer(phyVolName, 10, 10);
+#endif
+
   // mySD->InitializeAnalyzer(physBox);
 
   /*phyVolName                  = "PhysicalLeadBox_3";

@@ -7,6 +7,9 @@
 #include "MuonTrack.h"
 #include <TVector3.h>
 #include <iostream>
+
+//ClassImp(MuonTrack);
+
 MuonTrack::MuonTrack() {}
 
 MuonTrack::MuonTrack(std::vector<Data *> vecOfData) {
@@ -21,6 +24,10 @@ MuonTrack::MuonTrack(Data *start, Data *end) {
   fVecOfData.clear();
   fVecOfData.push_back(start);
   fVecOfData.push_back(end);
+}
+
+MuonTrack::~MuonTrack(){
+
 }
 
 Tomography::Track *MuonTrack::GetProcessorTrack() {

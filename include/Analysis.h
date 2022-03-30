@@ -42,6 +42,10 @@ class Analysis {
 
   TTree *ftree;
 
+  TTree *fPocaTree;
+  std::vector<Data *> fIncomingVecOfData;
+  std::vector<Data *> fOutgoingVecOfData;
+
   MuonTrack *fIncomingMuonTrack;
   MuonTrack *fOutgoingMuonTrack;
   Tracking::ImageReconstruction fIm; 
@@ -51,7 +55,7 @@ class Analysis {
 
   /*Required ROOT plots*/
   // TH1F *fEnergyDepHist;
-  // TFile *fp;
+  TFile *fp;
 
 public:
   Analysis();

@@ -43,10 +43,10 @@ int main(int argc, char *argv[]) {
     // std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" << std::endl;
     for (unsigned int i = 0; i < VectorOfDataObject->size(); i++) {
 
-      /*std::cout << "--------------------------------------" << std::endl;
-      std::cout << "POCA : ";
-      poca->Print();
-      (*VectorOfDataObject)[i]->Print();*/
+      std::cout << "--------------------------------------" << std::endl;
+      //std::cout << "POCA : ";
+      //poca->Print();
+      //(*VectorOfDataObject)[i]->Print();
       // tempPt.Set(poca->GetX()/10.,poca->GetY()/10.,poca->GetZ()/10.);
       /*if (angDev > 0.00006) {
         counter++;
