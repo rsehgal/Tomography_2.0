@@ -21,7 +21,7 @@ void Vector3D::Initialize() {
   x = -1000000.;
   y = -1000000.;
   z = -1000000.;
-}
+  }
 
 void Vector3D::Print() const { std::cout << "(" << x << "," << y << "," << z << ")" << std::endl; }
 
@@ -58,6 +58,10 @@ void Data::Initialize() {
   fMeanHitPoint.Initialize();
   fEntryHitPoint.Initialize();
   fEnergy = -1000000.;
+  /*fLayerId = 10000;
+  fDetId = 10000;
+  fDetName = "Initialized";*/
+
 }
 
 void Data::Print() {

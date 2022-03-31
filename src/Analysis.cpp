@@ -14,22 +14,21 @@
 #include <string>
 #include <vector>
 Analysis::Analysis() {
-  fp = new TFile("anal.root","RECREATE");
+  fp = new TFile("anal.root", "RECREATE");
   ftree = new TTree("ftree", "A tree with objects of Data");
   ftree->Branch("VectorOfDataObject", "std::vector<Data*>", &fVecOfData);
   ftree->Branch("POCA", "Vector3D", &fPOCA);
   ftree->Branch("MeanHitPt", "Vector3D", &fMeanHitPt);
   ftree->Branch("AngularDeviation", &fAngularDeviation, "fAngularDeviation/D");
-  //ftree->Branch("VecOfMeanHitPt", "std::vector<Vector3D>", &fVecOfMeanHitPt);
+  // ftree->Branch("VecOfMeanHitPt", "std::vector<Vector3D>", &fVecOfMeanHitPt);
   fIncomingMuonTrack = new MuonTrack;
   fOutgoingMuonTrack = new MuonTrack;
   fAngDevHist = new TH1F("AngularDeviation", "AngularDeviation", 200, -0.2, 0.2);
 
-
   fPocaTree = new TTree("fPocaTree", "A tree to evaluate vectorized PoCA");
   fPocaTree->Branch("Incoming_VectorOfDataObject", "std::vector<Data*>", &fIncomingVecOfData);
   fPocaTree->Branch("Outgoing_VectorOfDataObject", "std::vector<Data*>", &fOutgoingVecOfData);
-
+  fPocaTree->Branch("POCA", "Vector3D", &fPOCA);
 }
 Analysis::~Analysis() {
   // fEnergyDepHist->Write();
@@ -63,12 +62,20 @@ void Analysis::PreStepPositionInSteps(std::string name, G4ThreeVector pt) {
   }
 }
 
+void Analysis::SetHittedFor(std::string name) {
+  for (unsigned int i = 0; i < fVecOfRootObjects.size(); i++) {
+    if (fVecOfRootObjects[i]->GetObjectName() == name) {
+      fVecOfRootObjects[i]->SetHitted();
+    }
+  }
+}
+
 void PreStepPositionInSteps(std::string name, G4ThreeVector pt);
 
 void Analysis::InitializeTotalEnergyDeposit() {
 
   fVecOfData.clear();
-  //fVecOfMeanHitPt.clear();
+  // fVecOfMeanHitPt.clear();
   for (unsigned int i = 0; i < fVecOfRootObjects.size(); i++) {
     fVecOfRootObjects[i]->InitializeTotalEnergyDeposit();
   }
@@ -92,17 +99,19 @@ for(unsigned int i = 0 ; i < fVecOfRootObjects.size() ; i++){
 void Analysis::FillEnergyDep() {
 
   for (unsigned int i = 0; i < fVecOfRootObjects.size(); i++) {
-    fVecOfRootObjects[i]->FillEnergyDep();
-    Data *temp = fVecOfRootObjects[i]->GetDataObject();
-    // temp->Print();
-    fVecOfData.push_back(temp);
-    std::string detName = temp->GetDetName();
-    std::size_t pos = detName.find("_");
-    std::string preString = detName.substr(0, pos);
-    if (preString == "Scatterer") {
-	//std::cout << "Going to fill vecOf Mean Hit Pt .... : " << __FILE__ << " : "<< __LINE__ << std::endl;
-      //fVecOfMeanHitPt.push_back(temp->GetMeanHitPoint());
-	fMeanHitPt = temp->GetMeanHitPoint();
+    if (fVecOfRootObjects[i]->GetHitted()) {
+      fVecOfRootObjects[i]->FillEnergyDep();
+      Data *temp = fVecOfRootObjects[i]->GetDataObject();
+      // temp->Print();
+      fVecOfData.push_back(temp);
+      std::string detName = temp->GetDetName();
+      std::size_t pos = detName.find("_");
+      std::string preString = detName.substr(0, pos);
+      if (preString == "Scatterer") {
+        // std::cout << "Going to fill vecOf Mean Hit Pt .... : " << __FILE__ << " : "<< __LINE__ << std::endl;
+        // fVecOfMeanHitPt.push_back(temp->GetMeanHitPoint());
+        fMeanHitPt = temp->GetMeanHitPoint();
+      }
     }
   }
   ftree->Fill();
@@ -151,34 +160,44 @@ std::vector<Data *> Analysis::HitInAllLayers(bool &yes) {
   }
   return vecOfData;
 }
-std::vector<Data *> Analysis::GetIncomingMuonTrack() {
-  bool hitInAllLayers = true;
-  std::vector<Data *> completeTrack = HitInAllLayers(hitInAllLayers);
+std::vector<Data *> Analysis::GetIncomingMuonTrack(bool &hitInAllLayers) {
+  // bool hitInAllLayers = true;
   std::vector<Data *> incomingTrack;
-  if (hitInAllLayers) {
-    for (unsigned int i = 0; i < completeTrack.size() / 2; i++) {
-      incomingTrack.push_back(completeTrack[i]);
+  std::cout << RED << "Size of DataVEc from IncomingTrack : " << fVecOfData.size() << RESET << std::endl;
+  if (fVecOfData.size() == 4) {
+    std::vector<Data *> completeTrack = HitInAllLayers(hitInAllLayers);
+    if (hitInAllLayers) {
+      for (unsigned int i = 0; i < completeTrack.size() / 2; i++) {
+        incomingTrack.push_back(completeTrack[i]);
+      }
     }
-  }
+  } else
+    hitInAllLayers = false;
   return incomingTrack;
 }
-std::vector<Data *> Analysis::GetOutgoingMuonTrack() {
-  bool hitInAllLayers = true;
-  std::vector<Data *> completeTrack = HitInAllLayers(hitInAllLayers);
+std::vector<Data *> Analysis::GetOutgoingMuonTrack(bool &hitInAllLayers) {
+  // bool hitInAllLayers = true;
   std::vector<Data *> outgoingTrack;
-  if (hitInAllLayers) {
+  std::cout << RED << "Size of DataVEc from OutgoingTrack : " << fVecOfData.size() << RESET << std::endl;
+  if (fVecOfData.size() == 4) {
+    std::vector<Data *> completeTrack = HitInAllLayers(hitInAllLayers);
+    if (hitInAllLayers) {
 
-    for (unsigned int i = completeTrack.size() / 2; i < completeTrack.size(); i++) {
-      outgoingTrack.push_back(completeTrack[i]);
+      for (unsigned int i = completeTrack.size() / 2; i < completeTrack.size(); i++) {
+        outgoingTrack.push_back(completeTrack[i]);
+      }
     }
-  }
+  } else
+    hitInAllLayers = false;
   return outgoingTrack;
 }
 double Analysis::GetAngularDeviation() {
-  //std::vector<Data *> incomingTrackData = GetIncomingMuonTrack();
-  //std::vector<Data *> outgoingTrackData = GetOutgoingMuonTrack();
-  fIncomingVecOfData = GetIncomingMuonTrack();
-  fOutgoingVecOfData = GetOutgoingMuonTrack();
+  // std::vector<Data *> incomingTrackData = GetIncomingMuonTrack();
+  // std::vector<Data *> outgoingTrackData = GetOutgoingMuonTrack();
+  bool hitInAllLayers = true;
+  fIncomingVecOfData = GetIncomingMuonTrack(hitInAllLayers);
+  hitInAllLayers = true;
+  fOutgoingVecOfData = GetOutgoingMuonTrack(hitInAllLayers);
 
   //  if (fVecOfData.size() > 4) {
   if (0) {
@@ -191,25 +210,28 @@ double Analysis::GetAngularDeviation() {
       fVecOfData[i]->Print();
     }
   }
-  //fIncomingMuonTrack->Reset(incomingTrackData);
+  // fIncomingMuonTrack->Reset(incomingTrackData);
+  if (hitInAllLayers) {
   fIncomingMuonTrack->Reset(fIncomingVecOfData);
-
 
   // std::cout << RED << "--------------------------------" << RESET << std::endl;
   // fIncomingMuonTrack->Print();
   // std::cout << BLUE << "--------------------------------" << RESET << std::endl;
   // fIncomingMuonTrack->GetProcessorTrack()->Print();
 
-  //fOutgoingMuonTrack->Reset(outgoingTrackData);
+  // fOutgoingMuonTrack->Reset(outgoingTrackData);
   fOutgoingMuonTrack->Reset(fOutgoingVecOfData);
 
   // fOutgoingMuonTrack->Print();
   // Print();
   fAngularDeviation = fIncomingMuonTrack->GetAngularDeviation(fOutgoingMuonTrack);
-  if (std::fabs(fAngularDeviation) > 0.000001) {
+  // if (std::fabs(fAngularDeviation) > 0.000001)
+  std::cout << RED << "HitInAllLayers from GetAngularDeviation : " << hitInAllLayers << RESET << std::endl; 
+  //if (hitInAllLayers) {
     fAngDevHist->Fill(fAngularDeviation);
-    fPocaTree->Fill();
     CalculatePOCA();
+    fPocaTree->Fill();
+    Print();
   }
   return fAngularDeviation;
 }

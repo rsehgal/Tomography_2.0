@@ -34,7 +34,7 @@ include_directories(${ROOT_INCLUDE_DIR})
 #
 add_subdirectory(DataDict)
 #add_subdirectory(TrackingLib)
-
+link_directories(DataDict)
 
 include_directories(${CMAKE_SOURCE_DIR}/DataDict/inc)
 #include_directories(/home/rsehgal/Box_v2/DataDict/inc)

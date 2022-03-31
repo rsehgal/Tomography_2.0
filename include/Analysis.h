@@ -73,13 +73,14 @@ public:
   /*Function to analyze the tracks */
   Data* HitInLayer(unsigned short layerId, bool &yes);
   std::vector<Data*> HitInAllLayers(bool &yes);
-  std::vector<Data*> GetIncomingMuonTrack();
-  std::vector<Data*> GetOutgoingMuonTrack();
+  std::vector<Data*> GetIncomingMuonTrack(bool &hitInAllLayers);
+  std::vector<Data*> GetOutgoingMuonTrack(bool &hitInAllLayers);
   double GetAngularDeviation();
   std::vector<Data*> GetVectorOfData();
   void CalculatePOCA();
 
   void Print();
+  void SetHittedFor(std::string name);
   
   /*void FillEnergy(double energyVal);
   void Write();

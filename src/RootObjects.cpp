@@ -23,6 +23,10 @@ RootObjects::RootObjects(std::string name) {
   fHitted = false;
 }
 
+void RootObjects::SetHitted() { fHitted = true; }
+
+bool RootObjects::GetHitted() const {return fHitted;}
+
 RootObjects::RootObjects(std::string name, unsigned short detId, unsigned short layerId) {
   fObjectName = name;
   fDataObject = new Data(fObjectName, detId, layerId);

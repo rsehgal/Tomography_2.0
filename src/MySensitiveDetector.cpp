@@ -42,10 +42,12 @@ void MySensitiveDetector::InitializeAnalyzer(std::string phyVolumeName, unsigned
 
 void MySensitiveDetector::InitializeTotalEnergyDeposit() { fAnal->InitializeTotalEnergyDeposit(); }
 void MySensitiveDetector::Initialize(G4HCofThisEvent *hce) {
+
   hitPointVec.clear();
   hitPointVec.resize(4);
 
   evNo++;
+  std::cout << "Initialize of Sensitive detector called for event : " << evNo << std::endl;
   if (!(evNo % 10000) && (evNo != 0))
     std::cout << BLUE << "Processed : " << evNo << " events..." << RESET << std::endl;
   InitializeTotalEnergyDeposit();
@@ -97,6 +99,7 @@ void MySensitiveDetector::EndOfEvent(G4HCofThisEvent *HCE) {
       //(*hitsCollection)[i]->Print();
       fAnal->EnergyDepositInSteps((*hitsCollection)[i]->GetName(), (*hitsCollection)[i]->GetEnergyDep());
       fAnal->PreStepPositionInSteps((*hitsCollection)[i]->GetName(), (*hitsCollection)[i]->GetPosition());
+	fAnal->SetHittedFor((*hitsCollection)[i]->GetName());
     }
     // std::cout << __FILE__ << " : " <<  __LINE__ << std::endl;
     fAnal->FillEnergyDep();

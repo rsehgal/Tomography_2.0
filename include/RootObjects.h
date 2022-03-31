@@ -32,5 +32,7 @@ public:
   void FillVecOfEnergyDepositInSteps(double eDepStep);
   void FillVecOfPreStepPositionInSteps(G4ThreeVector pos);
   void Write();
+  void SetHitted();
+  bool GetHitted() const;
 };
 #endif
