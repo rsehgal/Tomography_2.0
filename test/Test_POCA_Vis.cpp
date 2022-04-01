@@ -48,11 +48,11 @@ int main(int argc, char *argv[]) {
       //poca->Print();
       //(*VectorOfDataObject)[i]->Print();
       // tempPt.Set(poca->GetX()/10.,poca->GetY()/10.,poca->GetZ()/10.);
-      /*if (angDev > 0.00006) {
+      if (angDev > 0.00006) {
         counter++;
         tempPt.Set(poca->GetX(), poca->GetY(), poca->GetZ());
         v->Register(tempPt);
-      }*/
+      }
     }
   }
 

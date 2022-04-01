@@ -104,9 +104,9 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
   } 
 
 
-#if(0)
+#if(1)
   G4Box *box = new G4Box("leadBox",               // its name
-                         50. * cm, 50. * cm, 5 * cm); // its size
+                         10. * cm, 10. * cm, 5 * cm); // its size
 
   // G4Material* box_mat = nist->FindOrBuildMaterial("G4_Pb");
   //G4Material *box_mat       = nist->FindOrBuildMaterial("G4_POLYVINYL_CHLORIDE");
@@ -139,7 +139,7 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
                                              false,           // no boolean operation
                                              1,               // copy number
                                              checkOverlaps);  // overlaps checking
-  mySD->InitializeAnalyzer(phyVolName, 10, 10);
+  //mySD->InitializeAnalyzer(phyVolName, 10, 10);
 #endif
 
   // mySD->InitializeAnalyzer(physBox);

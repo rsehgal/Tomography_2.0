@@ -45,6 +45,7 @@ void MyPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 {
  
   //fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,10.));
+  //G4ThreeVector startPt = G4ThreeVector(0.,0.,100*cm);
   G4ThreeVector startPt = G4ThreeVector(fRand->Uniform(-50*cm,50*cm),fRand->Uniform(-50*cm,50*cm),100*cm);
  
   fParticleGun->SetParticlePosition(startPt);

@@ -74,6 +74,9 @@ add_executable(Test_DataObject test/Test_DataObject.cpp)
 target_link_libraries(Test_DataObject ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES})
 add_executable(Test_IncomingOutgoing test/Test_IncomingOutgoing.cpp)
 target_link_libraries(Test_IncomingOutgoing ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES})
+add_executable(Test_IncomingOutgoing_v test/Test_IncomingOutgoing_v.cpp ${sources})
+target_link_libraries(Test_IncomingOutgoing_v ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES})
+
 
 #----------------------------------------------------------------------------
 # Copy all scripts to the build directory, i.e. the directory in which we

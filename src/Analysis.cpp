@@ -29,6 +29,7 @@ Analysis::Analysis() {
   fPocaTree->Branch("Incoming_VectorOfDataObject", "std::vector<Data*>", &fIncomingVecOfData);
   fPocaTree->Branch("Outgoing_VectorOfDataObject", "std::vector<Data*>", &fOutgoingVecOfData);
   fPocaTree->Branch("POCA", "Vector3D", &fPOCA);
+  fPocaTree->Branch("AngularDeviation", &fAngularDeviation, "fAngularDeviation/D");
 }
 Analysis::~Analysis() {
   // fEnergyDepHist->Write();
@@ -241,8 +242,8 @@ void Analysis::CalculatePOCA() {
       fIm.POCA(*fIncomingMuonTrack->GetProcessorTrack(), *fOutgoingMuonTrack->GetProcessorTrack());
   fPOCA.Set(pocaPt.x(), pocaPt.y(), pocaPt.z());
   // fPocaPt.SetColor(fScatteringAngle);
-  // std::cout << "POCA from Analyzer : ";
-  // pocaPt.Print();
+   std::cout << "POCA from Analyzer : ";
+   pocaPt.Print();
 }
 
 void Analysis::Print() {
