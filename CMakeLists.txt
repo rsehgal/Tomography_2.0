@@ -100,4 +100,83 @@ foreach(_script ${EXAMPLEB1_SCRIPTS})
     )
 endforeach()
 
+include(MacroUtilities)
+set(VECGEOM_BACKENDS scalar vc)
+enum_option(BACKEND DOC "Vector backend API to be used"
+  TYPE STRING
+  VALUES ${VECGEOM_BACKENDS}
+  CASE_INSENSITIVE)
+
+# Case adjustment because pass to VecCore components is
+if(BACKEND STREQUAL "scalar")
+  set(BACKEND "Scalar")
+elseif(BACKEND STREQUAL "vc")
+  set(BACKEND "Vc")
+endif()
+
+if("${BACKEND}" MATCHES "Vc")
+  set(VecCore_COMPONENTS ${VecCore_COMPONENTS} ${BACKEND})
+  add_definitions(-DVECCORE_ENABLE_VC)
+endif()
+
+
+find_package(VecCore REQUIRED)
+set(VecCore_VERSION "0.8.0")
+message(STATUS ${VecCore_INCLUDE_DIR})
+message(STATUS ${VecCore_LIBRARIES})
+include_directories(${VecCore_INCLUDE_DIR})
+find_package(Vc REQUIRED)
+#message(STATUS ${Vc_INCLUDE_DIR})
+#message(STATUS ${Vc_LIBRARIES})
+
+find_package(VecGeom REQUIRED)
+message(STATUS ${VecGeom_INCLUDE_DIRS})
+message(STATUS ${VecGeom_LIBRARIES})
+include_directories(${VecGeom_INCLUDE_DIRS})
+include_directories(/home/rsehgal/BackBoneSoftwares/VecGeom/include)
+
+include_directories(${Vc_INCLUDE_DIR})
+
+option(USE_FLOAT "Use single precision : float" OFF)
+
+if(USE_FLOAT)
+add_definitions(-DVECGEOM_FLOAT_PRECISION)
+endif(USE_FLOAT)
+
+
+
+
+set(VECGEOM_ISAS empty)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "(i686|x86_64)")
+  set(VECGEOM_ISAS sse2 sse3 ssse3 sse4.1 sse4.2 avx avx2 native empty)
+endif()
+
+enum_option(VECGEOM_VECTOR DOC "Vector instruction set to be used"
+  TYPE STRING
+  VALUES ${VECGEOM_ISAS}
+  CASE_INSENSITIVE)
+
+
+# - ISA-specific flags
+string(TOLOWER ${VECGEOM_VECTOR} _arch_lo)
+string(TOUPPER ${VECGEOM_VECTOR} _arch_up)
+
+if(${_arch_lo} MATCHES native)
+  if(Intel OR IntelLLVM)
+    set(VECGEOM_COMPILATION_FLAGS "${VECGEOM_COMPILATION_FLAGS} -march=native")
+  elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(powerpc|ppc)64le")
+    set(VECGEOM_COMPILATION_FLAGS "${VECGEOM_COMPILATION_FLAGS} -mcpu=${_arch_lo} -mtune=${_arch_lo}")
+  else()
+    set(VECGEOM_COMPILATION_FLAGS "${VECGEOM_COMPILATION_FLAGS} -march=${_arch_lo}")
+  endif()
+elseif(NOT ${_arch_lo} MATCHES empty)
+  set(VECGEOM_COMPILATION_FLAGS "${VECGEOM_COMPILATION_FLAGS} -m${_arch_lo}")
+endif()
+message(STATUS "Compiling for ${_arch_up} SIMD architecture")
+
+message(STATUS "Additional Compilation flags : "${VECGEOM_COMPILATION_FLAGS})
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${_build_type}} ${VECGEOM_COMPILATION_FLAGS}")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${_build_type}} ${VECGEOM_CXX_FLAGS} ${VECGEOM_COMPILATION_FLAGS}")
+string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 

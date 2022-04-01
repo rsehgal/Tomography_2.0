@@ -9,8 +9,63 @@
 #include "colors.h"
 #include <Imaging.h>
 #include <iostream>
+
 using Tomography::VisualizationHelper;
-using Vec_t = Tracking::Vector3D<double>;
+using MyVec_t = Tracking::Vector3D<double>;
+
+//--------------- Vectorized Stuff --------------------
+#include <Vc/Vc>
+#include <VecCore/VecCore>
+#include <VecGeom/base/Vector3D.h>
+
+#ifdef VECGEOM_FLOAT_PRECISION
+using baseType = float;
+#else
+using baseType = double;
+#endif
+
+using Real_v = Vc::Vector<baseType>;
+using vecgeomVec_t = vecgeom::Vector3D<Real_v>;
+
+vecgeomVec_t POCA(vecgeomVec_t p, vecgeomVec_t u, vecgeomVec_t q, vecgeomVec_t v) {
+  Real_v pDotv = p.Dot(v);
+  Real_v qDotv = q.Dot(v);
+  Real_v pDotu = p.Dot(u);
+  Real_v qDotu = q.Dot(u);
+  Real_v uDotv = u.Dot(v);
+  Real_v vMag2 = v.Mag2();
+  Real_v uMag2 = u.Mag2();
+
+  Real_v s = 0., t = 0.;
+  Real_v a = -(pDotv - qDotv) / uDotv;
+  Real_v b1 = uDotv * (pDotu - qDotu);
+  Real_v b2 = uMag2 * (pDotv - qDotv);
+  Real_v b = b1 - b2;
+  Real_v c = (-uDotv * uDotv + vMag2 * uMag2);
+  Real_v d = (-vMag2 * b) / (uDotv * c);
+  s = a + d;
+  std::cout << "A : " << a << std::endl;
+  std::cout << "D : " << d << std::endl;
+  Real_v numer = (uDotv * (pDotu - qDotu) - uMag2 * (pDotv - qDotv));
+  Real_v deno = (uDotv * uDotv - uMag2 * vMag2);
+  t = numer / deno;
+  vecgeomVec_t p1 = p + u * s;
+
+  std::cout << "--------------------------------------" << std::endl;
+  std::cout << "P : " << p << std::endl;
+  std::cout << "U : " << u << std::endl;
+  std::cout << "S : " << s << std::endl;
+
+  std::cout << "--------------------------------------" << std::endl;
+
+  vecgeomVec_t q1 = q + v * t;
+
+  std::cout << "P1 : " << p1 << std::endl;
+  std::cout << "Q1 : " << q1 << std::endl;
+  return (p1 + q1) / 2.;
+}
+//------------------------------------------------------
+
 int main(int argc, char *argv[]) {
   Tracking::ImageReconstruction img;
   // TApplication *fApp = new TApplication("Test", NULL, NULL);
@@ -26,7 +81,7 @@ int main(int argc, char *argv[]) {
   tr->SetBranchAddress("AngularDeviation", &angle);
   std::cout << "Total number of entries in the tree : " << tr->GetEntries() << std::endl;
 
-  Vec_t tempPt;
+  MyVec_t tempPt;
 
   MuonTrack incomingTrack;
   MuonTrack outgoingTrack;
@@ -51,7 +106,7 @@ int main(int argc, char *argv[]) {
   double *dirzO = new double[tr->GetEntries()];
 
   for (unsigned int j = 0; j < tr->GetEntries(); j++) {
-    //std::cout << RED << "Angle : " << angle << RESET << std::endl;
+    // std::cout << RED << "Angle : " << angle << RESET << std::endl;
     tr->GetEntry(j);
     if (angle > 0.00006) {
       pocaVec.push_back(*poca);
@@ -82,12 +137,12 @@ int main(int argc, char *argv[]) {
   std::cout << BLUE << "*************** Printing PoCA ***********************" << RESET << std::endl;
   // for (unsigned int j = 0; j < tr->GetEntries(); j++) {
   for (unsigned int j = 0; j < counter; j++) {
-    Vec_t p(x[j], y[j], z[j]);
-    Vec_t u(dirx[j], diry[j], dirz[j]);
-    Vec_t q(xO[j], yO[j], zO[j]);
-    Vec_t v(dirxO[j], diryO[j], dirzO[j]);
-    Vec_t p1, q1;
-    Vec_t poca = img.POCA(p, u, q, v, p1, q1);
+    MyVec_t p(x[j], y[j], z[j]);
+    MyVec_t u(dirx[j], diry[j], dirz[j]);
+    MyVec_t q(xO[j], yO[j], zO[j]);
+    MyVec_t v(dirxO[j], diryO[j], dirzO[j]);
+    MyVec_t p1, q1;
+    MyVec_t poca = img.POCA(p, u, q, v, p1, q1);
     std::cout << MAGENTA;
     poca.Print();
     std::cout << RESET;
@@ -98,6 +153,43 @@ int main(int argc, char *argv[]) {
   std::cout << RED << "Total Number of Muon Tracks : " << counter << std::endl;
   double color = 10;
 
+  //---------- VEctorized Stuff -------
+  {
+    vecgeomVec_t Pi1(-2., 0., 0.), Pi2(0., 2., 0.);
+    vecgeomVec_t dirI = (Pi2 - Pi1).Unit();
+    vecgeomVec_t Po1(5., 0., 0.), Po2(0., 5., 0.);
+    vecgeomVec_t dirO = (Po2 - Po1).Unit();
+    std::cout << "--------------------------------------" << std::endl;
+    vecgeomVec_t poca = POCA(Pi1, dirI, Po1, dirO);
+    std::cout << "POCA Point : " << poca << std::endl;
+
+    std::cout << BLUE << "############### Going to do Vectorized PoCA #######################" << RESET << std::endl;
+    unsigned int size = counter;
+    unsigned int offset = size - size % vecCore::VectorSize<Real_v>();
+    std::cout << "Offset : " << offset << std::endl;
+    unsigned int vec_loop_counter = 0;
+    for (unsigned int i = 0; i < offset; i += vecCore::VectorSize<Real_v>()) {
+      // std::cout << RED << "Scalar : (" << x[i] <<","<<x[i+1]<<","<<x[i+2]<<","<<x[i+3] <<")" << RESET << std::endl ;
+      vec_loop_counter++;
+      vecgeom::Vector3D<Real_v> p(vecCore::FromPtr<Real_v>(x + i), vecCore::FromPtr<Real_v>(y + i),
+                                  vecCore::FromPtr<Real_v>(z + i));
+      // std::cout << p << std::endl;
+      vecgeom::Vector3D<Real_v> u(vecCore::FromPtr<Real_v>(dirx + i), vecCore::FromPtr<Real_v>(diry + i),
+                                  vecCore::FromPtr<Real_v>(dirz + i));
+
+      vecgeom::Vector3D<Real_v> q(vecCore::FromPtr<Real_v>(xO + i), vecCore::FromPtr<Real_v>(yO + i),
+                                  vecCore::FromPtr<Real_v>(zO + i));
+      vecgeom::Vector3D<Real_v> v(vecCore::FromPtr<Real_v>(dirxO + i), vecCore::FromPtr<Real_v>(diryO + i),
+                                  vecCore::FromPtr<Real_v>(dirzO + i));
+      poca = POCA(p, u, q, v);
+      std::cout << BLUE << "POCA : " << poca << RESET << std::endl;
+    }
+
+    std::cout << MAGENTA << "Size : " << size << " : Vectorized Loop Counter : " << vec_loop_counter << RESET
+              << std::endl;
+  }
+
+  //----------------------------------
   // fApp->Run();
 
   return 0;
