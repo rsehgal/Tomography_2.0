@@ -76,6 +76,9 @@ add_executable(Test_IncomingOutgoing test/Test_IncomingOutgoing.cpp)
 target_link_libraries(Test_IncomingOutgoing ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES})
 add_executable(Test_IncomingOutgoing_v test/Test_IncomingOutgoing_v.cpp ${sources})
 target_link_libraries(Test_IncomingOutgoing_v ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES})
+add_executable(Test_POCA_Vis_v test/Test_POCA_Vis_v.cpp ${sources} )
+target_link_libraries(Test_POCA_Vis_v ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES} Geom Eve)
+
 
 
 #----------------------------------------------------------------------------
