@@ -10,8 +10,8 @@
 #include "timer.h"
 #include <Imaging.h>
 #include <iostream>
-static constexpr size_t kNruns = 1;//20;
-static constexpr size_t kN = 1;//10000; //(1024 * 1024);
+static constexpr size_t kNruns = 10;
+static constexpr size_t kN = 10000; //(1024 * 1024);
 
 #ifdef VECCORE_TIMER_CYCLES
 using time_unit = cycles;
@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
           vecgeom::Vector3D<Real_v> v(vecCore::FromPtr<Real_v>(dirxO + i), vecCore::FromPtr<Real_v>(diryO + i),
                                       vecCore::FromPtr<Real_v>(dirzO + i));
           poca = POCA(p, u, q, v);
-           std::cout << BLUE << "POCA : " << poca << RESET << std::endl;
+          // std::cout << BLUE << "POCA : " << poca << RESET << std::endl;
         }
       }
       t[n] = timer.Elapsed();

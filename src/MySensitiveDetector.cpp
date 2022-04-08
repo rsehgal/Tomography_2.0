@@ -47,7 +47,7 @@ void MySensitiveDetector::Initialize(G4HCofThisEvent *hce) {
   hitPointVec.resize(4);
 
   evNo++;
-  std::cout << "Initialize of Sensitive detector called for event : " << evNo << std::endl;
+  //std::cout << "Initialize of Sensitive detector called for event : " << evNo << std::endl;
   if (!(evNo % 10000) && (evNo != 0))
     std::cout << BLUE << "Processed : " << evNo << " events..." << RESET << std::endl;
   InitializeTotalEnergyDeposit();

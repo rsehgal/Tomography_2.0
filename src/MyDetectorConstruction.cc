@@ -83,8 +83,10 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
 	  double zval = offset+(numOfLayers/2 - 1)*spaceBetweenDetLayers;
   	  if(layerId < numOfLayers/2){
 		zval *= -1.;
+		zval -= 20*cm;
 	  }else{
 		zval = offset;
+		zval += 20*cm;
 	  }
 	  counter++;
 	  zval += (counter*spaceBetweenDetLayers);
@@ -106,7 +108,7 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
 
 #if(1)
   G4Box *box = new G4Box("leadBox",               // its name
-                         10. * cm, 10. * cm, 5 * cm); // its size
+                         10. * cm, 10. * cm, 10 * cm); // its size
 
   // G4Material* box_mat = nist->FindOrBuildMaterial("G4_Pb");
   //G4Material *box_mat       = nist->FindOrBuildMaterial("G4_POLYVINYL_CHLORIDE");

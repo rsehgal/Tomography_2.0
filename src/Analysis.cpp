@@ -164,7 +164,7 @@ std::vector<Data *> Analysis::HitInAllLayers(bool &yes) {
 std::vector<Data *> Analysis::GetIncomingMuonTrack(bool &hitInAllLayers) {
   // bool hitInAllLayers = true;
   std::vector<Data *> incomingTrack;
-  std::cout << RED << "Size of DataVEc from IncomingTrack : " << fVecOfData.size() << RESET << std::endl;
+  //std::cout << RED << "Size of DataVEc from IncomingTrack : " << fVecOfData.size() << RESET << std::endl;
   if (fVecOfData.size() == 4) {
     std::vector<Data *> completeTrack = HitInAllLayers(hitInAllLayers);
     if (hitInAllLayers) {
@@ -179,7 +179,7 @@ std::vector<Data *> Analysis::GetIncomingMuonTrack(bool &hitInAllLayers) {
 std::vector<Data *> Analysis::GetOutgoingMuonTrack(bool &hitInAllLayers) {
   // bool hitInAllLayers = true;
   std::vector<Data *> outgoingTrack;
-  std::cout << RED << "Size of DataVEc from OutgoingTrack : " << fVecOfData.size() << RESET << std::endl;
+  //std::cout << RED << "Size of DataVEc from OutgoingTrack : " << fVecOfData.size() << RESET << std::endl;
   if (fVecOfData.size() == 4) {
     std::vector<Data *> completeTrack = HitInAllLayers(hitInAllLayers);
     if (hitInAllLayers) {
@@ -227,12 +227,12 @@ double Analysis::GetAngularDeviation() {
   // Print();
   fAngularDeviation = fIncomingMuonTrack->GetAngularDeviation(fOutgoingMuonTrack);
   // if (std::fabs(fAngularDeviation) > 0.000001)
-  std::cout << RED << "HitInAllLayers from GetAngularDeviation : " << hitInAllLayers << RESET << std::endl; 
+  //std::cout << RED << "HitInAllLayers from GetAngularDeviation : " << hitInAllLayers << RESET << std::endl; 
   //if (hitInAllLayers) {
     fAngDevHist->Fill(fAngularDeviation);
     CalculatePOCA();
     fPocaTree->Fill();
-    Print();
+    //Print();
   }
   return fAngularDeviation;
 }
@@ -242,8 +242,8 @@ void Analysis::CalculatePOCA() {
       fIm.POCA(*fIncomingMuonTrack->GetProcessorTrack(), *fOutgoingMuonTrack->GetProcessorTrack());
   fPOCA.Set(pocaPt.x(), pocaPt.y(), pocaPt.z());
   // fPocaPt.SetColor(fScatteringAngle);
-   std::cout << "POCA from Analyzer : ";
-   pocaPt.Print();
+   //std::cout << "POCA from Analyzer : ";
+   //pocaPt.Print();
 }
 
 void Analysis::Print() {
