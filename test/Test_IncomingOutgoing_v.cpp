@@ -11,7 +11,7 @@
 #include <Imaging.h>
 #include <iostream>
 static constexpr size_t kNruns = 10;
-static constexpr size_t kN = 10000; //(1024 * 1024);
+static constexpr size_t kN = 1000; //(1024 * 1024);
 
 #ifdef VECCORE_TIMER_CYCLES
 using time_unit = cycles;
@@ -72,13 +72,13 @@ vecgeomVec_t POCA(vecgeomVec_t p, vecgeomVec_t u, vecgeomVec_t q, vecgeomVec_t v
 
   /*std::cout << "P1 : " << p1 << std::endl;
   std::cout << "Q1 : " << q1 << std::endl;*/
-  return (p1 + q1) / 2.;
+  return 0.5*(p1 + q1) ;
 }
 //------------------------------------------------------
 
 int main(int argc, char *argv[]) {
   Timer<time_unit> timer;
-  unsigned long long t[kNruns], mean = 0;
+  unsigned long long t[kNruns], mean = 0, meanVector = 0;
 
   Tracking::ImageReconstruction img;
   // TApplication *fApp = new TApplication("Test", NULL, NULL);
@@ -219,7 +219,7 @@ int main(int argc, char *argv[]) {
     unsigned int vec_loop_counter = 0;
     for (size_t n = 0; n < kNruns; n++) {
       timer.Start();
-      for (size_t i = 0; i < kN; i++) {
+      for (size_t j = 0; j < kN; j++) {
         for (unsigned int i = 0; i < offset; i += vecCore::VectorSize<Real_v>()) {
           // std::cout << RED << "Scalar : (" << x[i] <<","<<x[i+1]<<","<<x[i+2]<<","<<x[i+3] <<")" << RESET <<
           // std::endl ;
@@ -243,15 +243,16 @@ int main(int argc, char *argv[]) {
     }
 
     for (size_t n = 0; n < kNruns; n++)
-      mean += t[n];
+      meanVector += t[n];
 
-    mean = mean / (kN * kNruns);
+    meanVector = meanVector / (kN * kNruns);
     // std::cout << "Time elapsed in vector processing : " << timer.Elapsed() << std::endl;
-    std::cout << "Average Time elapsed in vector processing : " << mean << std::endl;
+    std::cout << "Average Time elapsed in vector processing : " << meanVector << std::endl;
     std::cout << MAGENTA << "Size : " << size << " : Vectorized Loop Counter : " << vec_loop_counter << RESET
               << std::endl;
   }
 
+  std::cout << RED << "SpeedUp factor obtained : " << (1.*mean)/(1.*meanVector) << std::endl;
   //----------------------------------
   // fApp->Run();
 
