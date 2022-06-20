@@ -23,7 +23,7 @@ MyDetectorConstruction::~MyDetectorConstruction() {}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4VPhysicalVolume *MyDetectorConstruction::Construct()
+G4VPhysicalVolume  *MyDetectorConstruction::Construct()
 {
   // Get nist material manager
   G4NistManager *nist = G4NistManager::Instance();
@@ -33,7 +33,7 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
   //
   // World
   //
-  G4double world_sizeXYZ = 500 * cm;
+  G4double world_sizeXYZ = 2000 * cm;
   G4Material *world_mat  = nist->FindOrBuildMaterial("G4_Galactic");
 
   G4Box *solidWorld = new G4Box("World",                                                        // its name
@@ -43,7 +43,7 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
                                                     world_mat,  // its material
                                                     "World");   // its name
 
-  G4VPhysicalVolume *physWorld = new G4PVPlacement(0,               // no rotation
+  G4VPhysicalVolume  *physWorld = new G4PVPlacement(0,               // no rotation
                                                    G4ThreeVector(), // at (0,0,0)
                                                    logicWorld,      // its logical volume
                                                    "World",         // its name
@@ -70,10 +70,10 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
                                                   "LogicalTrackingDetector"); // its name
 
   logicalTrackingDetector->SetSensitiveDetector(mySD);
-  unsigned short numOfLayers = 4;
+  unsigned short numOfLayers = 8;
   unsigned short numOfDetInEachLayer  = 1;
   std::string physicalDetName      = "PhysicalTrackingDetector";
-  double spaceBetweenDetLayers = 30.*cm;
+  double spaceBetweenDetLayers = 160*cm;
   double offset = 30.*cm;  
   short counter = -1;
   for(unsigned int i = 0 ; i < numOfLayers ; i++){
@@ -92,6 +92,7 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
 	  zval += (counter*spaceBetweenDetLayers);
 	  for(unsigned int j = 0 ; j < numOfDetInEachLayer ; j++){
 		unsigned short detId = (numOfDetInEachLayer*layerId)+j;
+		std::cout << "ZVal : " << zval << std::endl;
 		physicalDetName = ("PhysicalTrackingDetector_"+std::to_string(layerId)+"_"+std::to_string(detId));
 		new G4PVPlacement(0,                              // no rotation
                                                   G4ThreeVector(0., 0., zval), // at (0,0,0)
@@ -108,7 +109,7 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
 
 #if(1)
   G4Box *box = new G4Box("leadBox",               // its name
-                         10. * cm, 10. * cm, 10 * cm); // its size
+                         10. * cm, 10. * cm, 5 * cm); // its size
 
   // G4Material* box_mat = nist->FindOrBuildMaterial("G4_Pb");
   //G4Material *box_mat       = nist->FindOrBuildMaterial("G4_POLYVINYL_CHLORIDE");
@@ -116,25 +117,45 @@ G4VPhysicalVolume *MyDetectorConstruction::Construct()
   G4LogicalVolume *logicBox = new G4LogicalVolume(box,               // its solid
                                                   box_mat,           // its material
                                                   "LeadLogicalBox"); // its name
-  
+ 
   logicBox->SetSensitiveDetector(mySD);
+
+  G4Box *smallbox = new G4Box("smallleadBox",               // its name
+                         5. * cm, 5. * cm, 5 * cm); // its size
+
+  G4Material *smallbox_mat       = nist->FindOrBuildMaterial("G4_Pb");
+  G4LogicalVolume *smalllogicBox = new G4LogicalVolume(smallbox,               // its solid
+                                                  smallbox_mat,           // its material
+                                                  "LeadLogicalSmallBox"); // its name
+ 
+  smalllogicBox->SetSensitiveDetector(mySD);
+  //Placing small box
+  G4VPhysicalVolume *physSmallBox = new G4PVPlacement(0,                              // no rotation
+                                                  G4ThreeVector(0.*cm, 15*cm, 0.), // at (0,0,0)
+                                                  smalllogicBox,                       // its logical volume
+                                                  "SmallLeadScatterer",                     // its name
+                                                  logicWorld,                     // its mother  volume
+                                                  false,                          // no boolean operation
+                                                  0,                              // copy number
+                                                  checkOverlaps);                 // overlaps checking
+
   /*--------------------------------------------------------------------------*/
   std::string phyVolName      = "";
-  /*phyVolName= "PhysicalLeadBox_1";
+  phyVolName= "PhysicalLeadBox_1";
   G4VPhysicalVolume *physBox2 = new G4PVPlacement(0,                              // no rotation
-                                                  G4ThreeVector(0., 0., 15 * cm), // at (0,0,0)
+                                                  G4ThreeVector(15.*cm, 0., 0.), // at (0,0,0)
                                                   logicBox,                       // its logical volume
                                                   phyVolName,                     // its name
                                                   logicWorld,                     // its mother  volume
                                                   false,                          // no boolean operation
                                                   0,                              // copy number
                                                   checkOverlaps);                 // overlaps checking
-  mySD->InitializeAnalyzer(phyVolName, 0, 0);*/
+  //mySD->InitializeAnalyzer(phyVolName, 0, 0);
 
   phyVolName = "Scatterer_PhysicalLeadBox_2";
   // G4VPhysicalVolume *
   G4PVPlacement *physBox = new G4PVPlacement(0,               // no rotation
-                                             G4ThreeVector(), // at (0,0,0)
+                                             G4ThreeVector(-15.*cm,0.,0.), // at (0,0,0)
                                              logicBox,        // its logical volume
                                              phyVolName,      // its name
                                              logicWorld,      // its mother  volume

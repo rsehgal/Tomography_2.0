@@ -16,6 +16,7 @@ class RootObjects {
   std::vector<double> fVecOfEnergyDepositInSteps;
   std::vector<G4ThreeVector> fVecOfPreStepPoint;
   Data *fDataObject;
+  Data *fDataObject_Smeared;
   bool fHitted;
 
 public:
@@ -25,7 +26,7 @@ public:
   RootObjects(std::string name,unsigned short detId, unsigned short layerId);
   TH1F *GetEnergyDepHist() const;
   std::string GetObjectName() const;
-  Data *GetDataObject() const;
+  Data *GetDataObject(bool smeared=false) const;
   void InitializeTotalEnergyDeposit();
   void FillEnergyDep(double energyDep);
   void FillEnergyDep();

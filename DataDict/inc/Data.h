@@ -25,6 +25,7 @@ public:
   double GetX()const;
   double GetY()const;
   double GetZ()const;
+  void SmearIt();
   void Initialize();
   virtual ~Vector3D(); //{}
   ClassDef(Vector3D, 1)
@@ -40,6 +41,7 @@ class Data {
 public:
   Data();
   Data(std::string name, unsigned short detId, unsigned short layerId);
+  Data(const Data &data);
   double GetEnergy() const;
   std::string GetDetName()const;
   void SetEnergy(double energy);
@@ -50,6 +52,9 @@ public:
   
   Vector3D GetMeanHitPoint() const;
   Vector3D GetEntryHitPoint() const;
+  
+  void SmearIt();
+  Vector3D GetEntryHitPoint_Smeared();
   void Initialize();
   void Print();
   virtual ~Data();

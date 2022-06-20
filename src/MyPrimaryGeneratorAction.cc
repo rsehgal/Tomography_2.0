@@ -46,11 +46,16 @@ void MyPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
  
   //fParticleGun->SetParticlePosition(G4ThreeVector(0.,0.,10.));
   //G4ThreeVector startPt = G4ThreeVector(0.,0.,100*cm);
-  G4ThreeVector startPt = G4ThreeVector(fRand->Uniform(-50*cm,50*cm),fRand->Uniform(-50*cm,50*cm),100*cm);
+  //double gunZ = 145*cm;
+  double gunZ = 535*cm;
+  G4ThreeVector startPt = G4ThreeVector(fRand->Uniform(-50*cm,50*cm),fRand->Uniform(-50*cm,50*cm),gunZ);
+  G4ThreeVector endPt = G4ThreeVector(fRand->Uniform(-50*cm,50*cm),fRand->Uniform(-50*cm,50*cm),-1.*gunZ);
+  G4ThreeVector dir = endPt - startPt;
+  dir = dir.unit();
  
   fParticleGun->SetParticlePosition(startPt);
   Muon *muon = new Muon(*lite_interface::MuonReader::instance("Muons-50L.root")->GetMuon());
-  G4ThreeVector dir(muon->angleX, muon->angleY, muon->angleZ);
+  //G4ThreeVector dir(muon->angleX, muon->angleY, muon->angleZ);
   fParticleGun->SetParticleMomentumDirection(dir);
   fParticleGun->SetParticleEnergy(muon->energy * MeV);
 

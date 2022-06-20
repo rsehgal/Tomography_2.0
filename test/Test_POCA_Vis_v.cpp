@@ -1,6 +1,7 @@
 #include "Data.h"
 #include "EveVisualizer.h"
 #include "MuonTrack.h"
+#include "MyDetectorConstruction.hh"
 #include "TApplication.h"
 #include "TFile.h"
 #include "TTree.h"
@@ -8,6 +9,12 @@
 #include "base/Vector3D.h"
 #include "colors.h"
 #include "timer.h"
+#include <G4AffineTransform.hh>
+#include <G4GDMLParser.hh>
+#include <G4LogicalVolume.hh>
+#include <G4PVPlacement.hh>
+#include <G4VPhysicalVolume.hh>
+#include <G4VSolid.hh>
 #include <Imaging.h>
 #include <iostream>
 static constexpr size_t kNruns = 1; // 20;
@@ -77,6 +84,20 @@ vecgeomVec_t POCA(vecgeomVec_t p, vecgeomVec_t u, vecgeomVec_t q, vecgeomVec_t v
 //------------------------------------------------------
 
 int main(int argc, char *argv[]) {
+  std::vector<G4VPhysicalVolume *> vecOfscatterers;
+  G4GDMLParser parser;
+  parser.Read("geom.gdml");
+  G4VPhysicalVolume *world = parser.GetWorldVolume("World");
+  unsigned short numOfDaughters = world->GetLogicalVolume()->GetNoDaughters();
+  for (unsigned int i = 0; i < numOfDaughters; i++) {
+    G4VPhysicalVolume *daugPhysical = world->GetLogicalVolume()->GetDaughter(i);
+    std::cout << "Physical Daughter Name : " << daugPhysical->GetName() << std::endl;
+    std::string daughName = daugPhysical->GetName();
+    if (daughName.substr(0, 16) != "PhysicalTracking") {
+      vecOfscatterers.push_back(daugPhysical);
+    }
+  }
+
   Timer<time_unit> timer;
   unsigned long long t[kNruns], mean = 0;
 
@@ -92,8 +113,8 @@ int main(int argc, char *argv[]) {
   std::vector<Data *> *Outgoing_VectorOfDataObject = NULL;
   Vector3D *poca = NULL;
   double angle = 0;
-  tr->SetBranchAddress("Incoming_VectorOfDataObject", &Incoming_VectorOfDataObject);
-  tr->SetBranchAddress("Outgoing_VectorOfDataObject", &Outgoing_VectorOfDataObject);
+  tr->SetBranchAddress("Incoming_VectorOfDataObject_Smeared", &Incoming_VectorOfDataObject);
+  tr->SetBranchAddress("Outgoing_VectorOfDataObject_Smeared", &Outgoing_VectorOfDataObject);
   tr->SetBranchAddress("POCA", &poca);
   tr->SetBranchAddress("AngularDeviation", &angle);
   std::cout << "Total number of entries in the tree : " << tr->GetEntries() << std::endl;
@@ -106,6 +127,8 @@ int main(int argc, char *argv[]) {
   std::vector<Vector3D> pocaVec;
 
   unsigned int counter = 0;
+  unsigned int counterTruePos = 0;
+  unsigned int counterAll = 0;
 
 // For Incoming Track
 #ifdef VECGEOM_FLOAT_PRECISION
@@ -123,6 +146,8 @@ int main(int argc, char *argv[]) {
   float *dirxO = new float[tr->GetEntries()];
   float *diryO = new float[tr->GetEntries()];
   float *dirzO = new float[tr->GetEntries()];
+
+  float *dev = new float[tr->GetEntries()];
 #else
   // For Incoming Track
   double *x = new double[tr->GetEntries()];
@@ -139,9 +164,12 @@ int main(int argc, char *argv[]) {
   double *dirxO = new double[tr->GetEntries()];
   double *diryO = new double[tr->GetEntries()];
   double *dirzO = new double[tr->GetEntries()];
+
+  double *dev = new double[tr->GetEntries()];
 #endif
 
   for (unsigned int j = 0; j < tr->GetEntries(); j++) {
+    // for (unsigned int j = 0; j < 4; j++) {
     // std::cout << RED << "Angle : " << angle << RESET << std::endl;
     tr->GetEntry(j);
     if (angle > 0.00006) {
@@ -165,6 +193,8 @@ int main(int argc, char *argv[]) {
       dirxO[counter] = outgoing->GetDirCosine().x();
       diryO[counter] = outgoing->GetDirCosine().y();
       dirzO[counter] = outgoing->GetDirCosine().z();
+
+      dev[counter] = angle;
 
       counter++;
     }
@@ -239,15 +269,35 @@ int main(int argc, char *argv[]) {
                                       vecCore::FromPtr<Real_v>(zO + i));
           vecgeom::Vector3D<Real_v> v(vecCore::FromPtr<Real_v>(dirxO + i), vecCore::FromPtr<Real_v>(diryO + i),
                                       vecCore::FromPtr<Real_v>(dirzO + i));
+
+          Real_v devV = vecCore::FromPtr<Real_v>(dev + i);
           poca_v = POCA(p, u, q, v);
           // pocaVec_v.push_back(new (vecgeomVec_t(poca_v)));
-
           for (unsigned int k = 0; k < vecCore::VectorSize<Real_v>(); k++) {
-            tempPt.Set(poca_v.x()[k], poca_v.y()[k], poca_v.z()[k]);
-            vis->Register(tempPt);
+            tempPt.Set(poca_v.x()[k], poca_v.y()[k], poca_v.z()[k], devV[k]);
+
+            if (std::fabs(tempPt.z()) < 500.) {
+
+              G4ThreeVector tempG4Point(tempPt.x(), tempPt.y(), tempPt.z());
+              counterAll++;
+              for (unsigned int scatIndex = 0; scatIndex < vecOfscatterers.size(); scatIndex++) {
+                G4AffineTransform Tm(vecOfscatterers[scatIndex]->GetRotation(),
+                                     vecOfscatterers[scatIndex]->GetTranslation());
+                Tm = Tm.Invert();
+                G4ThreeVector transformedG4Point = Tm.TransformPoint(tempG4Point);
+                G4VSolid *solid = vecOfscatterers[scatIndex]->GetLogicalVolume()->GetSolid();
+                if (solid->Inside(transformedG4Point) == EInside::kInside) {
+                  counterTruePos++;
+                  // vis->Register(tempPt);
+                  break;
+                }
+                vis->Register(tempPt);
+              }
+            }
           }
 
-          std::cout << BLUE << "POCA : " << poca_v << RESET << std::endl;
+          // std::cout << BLUE << "POCA : " << poca_v << RESET << std::endl;
+          // std::cout << GREEN << "Angle : " << devV << RESET << std::endl;
         }
       }
       t[n] = timer.Elapsed();
@@ -263,6 +313,9 @@ int main(int argc, char *argv[]) {
     std::cout << MAGENTA << "Size : " << size << " : Vectorized Loop Counter : " << vec_loop_counter << RESET
               << std::endl;
   }
+
+  std::cout << GREEN << "CounterTruePos : " << counterTruePos << " : CounterTotal : " << counter
+            << " : RATIO : " << (1. * counterTruePos) / (1. * counter) << " : CounterAll : " << counterAll <<"  : Ratio CounterAll : " << (1. * counterTruePos) / (1. * counterAll) << std::endl;
 
   //----------------------------------
   /*TApplication *fApp = new TApplication("Test", NULL, NULL);
@@ -281,6 +334,30 @@ int main(int argc, char *argv[]) {
     }
     v->Register(tempPt);
   }*/
+
+  /*
+  ** Reading geometry using gdml parser
+  */
+  /*G4GDMLParser parser;
+  parser.Read("geom.gdml");
+  G4VPhysicalVolume *world = parser.GetWorldVolume("World");*/
+  /*
+  ** Trying to list the daughter volume of world
+  */
+  /*unsigned short numOfDaughters = world->GetLogicalVolume()->GetNoDaughters();
+
+  for (unsigned int i = 0; i < numOfDaughters; i++) {
+    G4VPhysicalVolume *daugPhysical = world->GetLogicalVolume()->GetDaughter(i);
+    std::cout << "Physical Daughter Name : " << daugPhysical->GetName() << std::endl;
+    std::string daughName = daugPhysical->GetName();
+    if (daughName.substr(0, 9) == "Scatterer") {
+         G4AffineTransform Tm( daugPhysical->GetRotation(), daugPhysical->GetTranslation() );
+      std::cout << GREEN << "Physical Scatterer Name : " << daughName << RESET << std::endl;
+      std::cout << "Translation : " << daugPhysical->GetTranslation() << std::endl;
+     std::cout << "Rotation : " << daugPhysical->GetRotation() << std::endl;
+    }
+  }
+  std::cout << GREEN << "Num Of Daughters : " << numOfDaughters << RESET << std::endl;*/
   vis->Lock();
   vis->Show();
 

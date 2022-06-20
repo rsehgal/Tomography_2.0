@@ -45,6 +45,8 @@ class Analysis {
   TTree *fPocaTree;
   std::vector<Data *> fIncomingVecOfData;
   std::vector<Data *> fOutgoingVecOfData;
+  std::vector<Data *> fIncomingVecOfData_Smeared;
+  std::vector<Data *> fOutgoingVecOfData_Smeared;
 
   MuonTrack *fIncomingMuonTrack;
   MuonTrack *fOutgoingMuonTrack;
@@ -52,6 +54,9 @@ class Analysis {
   
   double fAngularDeviation;
   TH1F *fAngDevHist;
+
+  TH1F *fResolHist;
+  TH1F *findingHist;
 
   /*Required ROOT plots*/
   // TH1F *fEnergyDepHist;

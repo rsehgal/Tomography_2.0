@@ -67,17 +67,28 @@ target_link_libraries(main ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${Tracki
 add_executable(Test_POCA_Vis test/Test_POCA_Vis.cpp)
 target_link_libraries(Test_POCA_Vis ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES} Geom Eve)
 
+add_executable(Test_POCA_Vis_Recons test/Test_POCA_Vis_Recons.cpp)
+target_link_libraries(Test_POCA_Vis_Recons ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES} Geom Eve)
+
 add_executable(Test_Acceptance test/Test_Acceptance.cpp)
 target_link_libraries(Test_Acceptance ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES} Geom Eve)
 
 add_executable(Test_DataObject test/Test_DataObject.cpp)
 target_link_libraries(Test_DataObject ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES})
+
 add_executable(Test_IncomingOutgoing test/Test_IncomingOutgoing.cpp)
 target_link_libraries(Test_IncomingOutgoing ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES})
+
+add_executable(Test_IncomingOutgoing2 test/Test_IncomingOutgoing2.cpp)
+target_link_libraries(Test_IncomingOutgoing2 ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES})
+
 add_executable(Test_IncomingOutgoing_v test/Test_IncomingOutgoing_v.cpp ${sources})
 target_link_libraries(Test_IncomingOutgoing_v ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES})
 add_executable(Test_POCA_Vis_v test/Test_POCA_Vis_v.cpp ${sources} )
 target_link_libraries(Test_POCA_Vis_v ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES} Geom Eve)
+
+add_executable(Test_TrueFalsePositive test/Test_TrueFalsePositive.cpp ${sources} )
+target_link_libraries(Test_TrueFalsePositive ${Geant4_LIBRARIES} ${ROOT_LIBRARIES} ABData ${TrackingLib_LIBRARIES} Geom Eve)
 
 
 

@@ -6,7 +6,7 @@
 
 class G4VPhysicalVolume;
 class G4LogicalVolume;
-
+class G4PVPlacement;
 /// Detector construction class to define materials and geometry.
 
 class MyDetectorConstruction : public G4VUserDetectorConstruction

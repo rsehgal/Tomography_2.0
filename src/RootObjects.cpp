@@ -11,7 +11,12 @@ RootObjects::RootObjects() {}
 
 RootObjects::~RootObjects() {}
 
-Data *RootObjects::GetDataObject() const { return fDataObject; }
+Data *RootObjects::GetDataObject(bool smeared) const {
+  if (smeared)
+    return fDataObject_Smeared;
+  else
+    return fDataObject;
+}
 
 std::string RootObjects::GetObjectName() const { return fObjectName; }
 
@@ -25,11 +30,12 @@ RootObjects::RootObjects(std::string name) {
 
 void RootObjects::SetHitted() { fHitted = true; }
 
-bool RootObjects::GetHitted() const {return fHitted;}
+bool RootObjects::GetHitted() const { return fHitted; }
 
 RootObjects::RootObjects(std::string name, unsigned short detId, unsigned short layerId) {
   fObjectName = name;
   fDataObject = new Data(fObjectName, detId, layerId);
+  fDataObject_Smeared = new Data(fObjectName + "_Smeared", detId, layerId);
   std::string histName = fObjectName + "_EnergyDep";
   fEnergyDepHist = new TH1F(histName.c_str(), histName.c_str(), 200, 0, 50.);
   fHitted = false;
@@ -47,6 +53,7 @@ void RootObjects::InitializeTotalEnergyDeposit() {
   fVecOfEnergyDepositInSteps.clear();
   fHitted = false;
   fDataObject->Initialize();
+  fDataObject_Smeared->Initialize();
   fVecOfPreStepPoint.clear();
 }
 

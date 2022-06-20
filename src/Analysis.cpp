@@ -15,6 +15,8 @@
 #include <vector>
 Analysis::Analysis() {
   fp = new TFile("anal.root", "RECREATE");
+  fResolHist = new TH1F("resolution", "resolution", 100, -50, 50);
+  findingHist = new TH1F("findingHist", "findingHist", 10, -500, 500);
   ftree = new TTree("ftree", "A tree with objects of Data");
   ftree->Branch("VectorOfDataObject", "std::vector<Data*>", &fVecOfData);
   ftree->Branch("POCA", "Vector3D", &fPOCA);
@@ -28,6 +30,8 @@ Analysis::Analysis() {
   fPocaTree = new TTree("fPocaTree", "A tree to evaluate vectorized PoCA");
   fPocaTree->Branch("Incoming_VectorOfDataObject", "std::vector<Data*>", &fIncomingVecOfData);
   fPocaTree->Branch("Outgoing_VectorOfDataObject", "std::vector<Data*>", &fOutgoingVecOfData);
+  fPocaTree->Branch("Incoming_VectorOfDataObject_Smeared", "std::vector<Data*>", &fIncomingVecOfData_Smeared);
+  fPocaTree->Branch("Outgoing_VectorOfDataObject_Smeared", "std::vector<Data*>", &fOutgoingVecOfData_Smeared);
   fPocaTree->Branch("POCA", "Vector3D", &fPOCA);
   fPocaTree->Branch("AngularDeviation", &fAngularDeviation, "fAngularDeviation/D");
 }
@@ -126,6 +130,7 @@ void Analysis::Write() {
   ftree->Write();
   fPocaTree->Write();
   fAngDevHist->Write();
+  fResolHist->Write();
   fp->Close();
 }
 Data *Analysis::HitInLayer(unsigned short layerId, bool &yes) {
@@ -146,7 +151,7 @@ Data *Analysis::HitInLayer(unsigned short layerId, bool &yes) {
 std::vector<Data *> Analysis::HitInAllLayers(bool &yes) {
   std::vector<Data *> vecOfData;
   yes = true;
-  short numOfLayers = 4;
+  short numOfLayers = 8;
   for (short i = numOfLayers - 1; i >= 0; i--) {
     // std::cout << RED <<  "I : " << i << RESET << std::endl;
     bool hitDone = false;
@@ -164,8 +169,8 @@ std::vector<Data *> Analysis::HitInAllLayers(bool &yes) {
 std::vector<Data *> Analysis::GetIncomingMuonTrack(bool &hitInAllLayers) {
   // bool hitInAllLayers = true;
   std::vector<Data *> incomingTrack;
-  //std::cout << RED << "Size of DataVEc from IncomingTrack : " << fVecOfData.size() << RESET << std::endl;
-  if (fVecOfData.size() == 4) {
+  // std::cout << RED << "Size of DataVEc from IncomingTrack : " << fVecOfData.size() << RESET << std::endl;
+  if (fVecOfData.size() == 8) {
     std::vector<Data *> completeTrack = HitInAllLayers(hitInAllLayers);
     if (hitInAllLayers) {
       for (unsigned int i = 0; i < completeTrack.size() / 2; i++) {
@@ -179,8 +184,8 @@ std::vector<Data *> Analysis::GetIncomingMuonTrack(bool &hitInAllLayers) {
 std::vector<Data *> Analysis::GetOutgoingMuonTrack(bool &hitInAllLayers) {
   // bool hitInAllLayers = true;
   std::vector<Data *> outgoingTrack;
-  //std::cout << RED << "Size of DataVEc from OutgoingTrack : " << fVecOfData.size() << RESET << std::endl;
-  if (fVecOfData.size() == 4) {
+  // std::cout << RED << "Size of DataVEc from OutgoingTrack : " << fVecOfData.size() << RESET << std::endl;
+  if (fVecOfData.size() == 8) {
     std::vector<Data *> completeTrack = HitInAllLayers(hitInAllLayers);
     if (hitInAllLayers) {
 
@@ -197,8 +202,26 @@ double Analysis::GetAngularDeviation() {
   // std::vector<Data *> outgoingTrackData = GetOutgoingMuonTrack();
   bool hitInAllLayers = true;
   fIncomingVecOfData = GetIncomingMuonTrack(hitInAllLayers);
+  /*double trueVal = fIncomingVecOfData[0]->GetEntryHitPoint().GetX();
+  double calcVal = fResolHist->GetXaxis()->GetBinCenter(fResolHist->GetXaxis()->FindBin(trueVal));
+  fResolHist->Fill(trueVal-calcVal);*/
+  fIncomingVecOfData_Smeared.clear();
+  fOutgoingVecOfData_Smeared.clear();
+  // Filling smeared hit
+  for (unsigned int ptIndex = 0; ptIndex < fIncomingVecOfData.size(); ptIndex++) {
+    Data *temp = new Data(*fIncomingVecOfData[ptIndex]);
+    temp->SmearIt();
+    fIncomingVecOfData_Smeared.push_back(temp);
+  }
+
   hitInAllLayers = true;
   fOutgoingVecOfData = GetOutgoingMuonTrack(hitInAllLayers);
+  // Filling smeared hit
+  for (unsigned int ptIndex = 0; ptIndex < fOutgoingVecOfData.size(); ptIndex++) {
+    Data *temp = new Data(*fOutgoingVecOfData[ptIndex]);
+    temp->SmearIt();
+    fOutgoingVecOfData_Smeared.push_back(temp);
+  }
 
   //  if (fVecOfData.size() > 4) {
   if (0) {
@@ -213,26 +236,39 @@ double Analysis::GetAngularDeviation() {
   }
   // fIncomingMuonTrack->Reset(incomingTrackData);
   if (hitInAllLayers) {
-  fIncomingMuonTrack->Reset(fIncomingVecOfData);
+    fIncomingMuonTrack->Reset(fIncomingVecOfData);
+    double trueVal1 = fIncomingVecOfData[0]->GetEntryHitPoint().GetX();
+    int binNum1 = findingHist->GetXaxis()->FindBin(trueVal1);
+    double calcVal = findingHist->GetXaxis()->GetBinCenter(binNum1);
 
-  // std::cout << RED << "--------------------------------" << RESET << std::endl;
-  // fIncomingMuonTrack->Print();
-  // std::cout << BLUE << "--------------------------------" << RESET << std::endl;
-  // fIncomingMuonTrack->GetProcessorTrack()->Print();
+    double trueVal2 = fIncomingVecOfData[fIncomingVecOfData.size() - 1]->GetEntryHitPoint().GetX();
+    int binNum2 = findingHist->GetXaxis()->FindBin(trueVal2);
+    if (binNum1 == 4 && binNum2 == 4) {
+      double diff = trueVal1 - calcVal;
+      /*  if(std::fabs(diff) > 45){
+    std::cout << GREEN << "Diff : " << diff << std::endl;
+    }*/
+      fResolHist->Fill(diff);
+    }
 
-  // fOutgoingMuonTrack->Reset(outgoingTrackData);
-  fOutgoingMuonTrack->Reset(fOutgoingVecOfData);
+    // std::cout << RED << "--------------------------------" << RESET << std::endl;
+    // fIncomingMuonTrack->Print();
+    // std::cout << BLUE << "--------------------------------" << RESET << std::endl;
+    // fIncomingMuonTrack->GetProcessorTrack()->Print();
 
-  // fOutgoingMuonTrack->Print();
-  // Print();
-  fAngularDeviation = fIncomingMuonTrack->GetAngularDeviation(fOutgoingMuonTrack);
-  // if (std::fabs(fAngularDeviation) > 0.000001)
-  //std::cout << RED << "HitInAllLayers from GetAngularDeviation : " << hitInAllLayers << RESET << std::endl; 
-  //if (hitInAllLayers) {
+    // fOutgoingMuonTrack->Reset(outgoingTrackData);
+    fOutgoingMuonTrack->Reset(fOutgoingVecOfData);
+
+    // fOutgoingMuonTrack->Print();
+    // Print();
+    fAngularDeviation = fIncomingMuonTrack->GetAngularDeviation(fOutgoingMuonTrack);
+    // if (std::fabs(fAngularDeviation) > 0.000001)
+    // std::cout << RED << "HitInAllLayers from GetAngularDeviation : " << hitInAllLayers << RESET << std::endl;
+    // if (hitInAllLayers) {
     fAngDevHist->Fill(fAngularDeviation);
     CalculatePOCA();
     fPocaTree->Fill();
-    //Print();
+    // Print();
   }
   return fAngularDeviation;
 }
@@ -242,8 +278,8 @@ void Analysis::CalculatePOCA() {
       fIm.POCA(*fIncomingMuonTrack->GetProcessorTrack(), *fOutgoingMuonTrack->GetProcessorTrack());
   fPOCA.Set(pocaPt.x(), pocaPt.y(), pocaPt.z());
   // fPocaPt.SetColor(fScatteringAngle);
-   //std::cout << "POCA from Analyzer : ";
-   //pocaPt.Print();
+  // std::cout << "POCA from Analyzer : ";
+  // pocaPt.Print();
 }
 
 void Analysis::Print() {
